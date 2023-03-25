@@ -1,8 +1,9 @@
 import { BadRequestException, Catch, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateExpenseDto } from './dto/create-expense';
+import { CreateExpenseDto } from './dto/create';
 import { CategoryEntity, ExpenseEntity } from './expense.entity';
-import { Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
+import { GetExpenseDto } from './dto/get';
 
 @Injectable()
 export class ExpensesService {
@@ -35,16 +36,14 @@ export class ExpensesService {
   }
 
   async createExpense(data: CreateExpenseDto) {
-
     const category = await this.getCategoryExpenseById(data.category_id);
 
-    if(!category) throw new BadRequestException('Category not found');
+    if (!category) throw new BadRequestException('Category not found');
 
     const newExpense = this.expenseRepository.create({
-        ...data,
-        category: category
-    })
-
+      ...data,
+      category: category,
+    });
 
     return await this.expenseRepository.save(newExpense);
   }
@@ -59,11 +58,57 @@ export class ExpensesService {
     if (!expense) throw new BadRequestException('Expense not found');
 
     return this.expenseRepository.remove(expense);
-
   }
 
-  async getAllExpense() {
-    return await this.expenseRepository.find();
+  async getExpense(data: GetExpenseDto) {
+    if (data.category) {
+      const category = await this.categoryRepository.findOne({
+        where: {
+          id: In(data.category),
+        },
+      });
+
+      if (!category) throw new BadRequestException('Category not found');
+    }
+
+    if (data.min_price || data.max_price) {
+      if (!data.min_price) data.min_price = 1;
+      if (!data.max_price) data.max_price = Number.MAX_SAFE_INTEGER;
+
+      if (data.min_price > data.max_price)
+        throw new BadRequestException(
+          'Min price cannot be greater than max price',
+        );
+    } 
+
+
+    return await this.expenseRepository.find({
+      where: {
+        ...(data.category && {
+          category: {
+            id: In(data.category),
+          },
+          ...(data.min_price && data.max_price && {
+            amount: Between(data.min_price, data.max_price),
+          }),
+        }),
+      },
+    });
   }
 
+  async getExpenseByCategory(id: string) {
+    const category = await this.categoryRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!category) throw new BadRequestException('Category not found');
+
+    return await this.expenseRepository.find({
+      where: {
+        category: category,
+      },
+    });
+  }
 }
