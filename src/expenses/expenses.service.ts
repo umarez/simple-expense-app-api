@@ -84,13 +84,8 @@ export class ExpensesService {
         );
     }
 
-    console.log(data.min_price, data.max_price);
-
-    const query = this.expenseRepository.createQueryBuilder('expense');
-
-    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip);
-    const itemCount = await query.getCount();
-    const entities = await query
+    const query = this.expenseRepository
+      .createQueryBuilder('expense')
       .leftJoinAndSelect('expense.category', 'category')
       .select([
         'expense.id',
@@ -108,9 +103,11 @@ export class ExpensesService {
           data.max_price && {
             amount: Between(data.min_price, data.max_price),
           }),
-      })
-      .take(pageOptionsDto.limit)
-      .getMany();
+      }).orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip);;
+
+
+    const itemCount = await query.getCount();
+    const entities = await query.take(pageOptionsDto.limit).getMany();
 
     const pagesMetaDto = new PageMetaDto({
       itemCount,
