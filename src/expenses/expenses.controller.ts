@@ -47,6 +47,11 @@ export class ExpensesController {
     return this.expenseService.getExpense(data, pageOptionsDto);
   }
 
+  @Get(':id')
+  getExpenseById(@Body('id') id: string) {
+    return this.expenseService.getExpenseById(id);
+  }
+
   @Get('category/:id')
   getExpenseByCategory(@Body('id') id: string) {
     return this.expenseService.getExpenseByCategory(id);
@@ -67,8 +72,8 @@ export class ExpensesController {
     return this.expenseService.createExpense(createExpenseDto);
   }
 
-  @Delete(':id')
-  deleteExpense(@Body('id') id: string) {
-    return this.expenseService.deleteExpense(id);
-  }
+  // @Delete(':id')
+  // deleteExpense(@Body('id') id: string) {
+  //   return this.expenseService.deleteExpense(id);
+  // }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Catch, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateExpenseDto } from './dto/create.dto';
 import { CategoryEntity, ExpenseEntity } from './expense.entity';
@@ -51,17 +51,17 @@ export class ExpensesService {
     return await this.expenseRepository.save(newExpense);
   }
 
-  async deleteExpense(id: string) {
-    const expense = await this.expenseRepository.findOne({
-      where: {
-        id,
-      },
-    });
+  // async deleteExpense(id: string) {
+  //   const expense = await this.expenseRepository.findOne({
+  //     where: {
+  //       id,
+  //     },
+  //   });
 
-    if (!expense) throw new BadRequestException('Expense not found');
+  //   if (!expense) throw new BadRequestException('Expense not found');
 
-    return this.expenseRepository.remove(expense);
-  }
+  //   return this.expenseRepository.remove(expense);
+  // }
 
   async getExpense(data: GetExpenseDto, pageOptionsDto: PageOptionsDto) {
     if (data.category) {
@@ -86,7 +86,7 @@ export class ExpensesService {
 
     const query = this.expenseRepository.createQueryBuilder('expense');
 
-    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip)
+    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip);
     const itemCount = await query.getCount();
     const entities = await query
       .leftJoinAndSelect('expense.category', 'category')
@@ -109,7 +109,7 @@ export class ExpensesService {
       })
       .take(pageOptionsDto.limit)
       .getMany();
-      
+
     const pagesMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto,
@@ -132,5 +132,17 @@ export class ExpensesService {
         category: category,
       },
     });
+  }
+
+  async getExpenseById(id: string) {
+    const expense = await this.expenseRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!expense) throw new BadRequestException('Expense not found');
+
+    return expense;
   }
 }
