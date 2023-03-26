@@ -90,6 +90,14 @@ export class ExpensesService {
 
     const itemCount = await query.getCount();
     const entities = await query
+      .leftJoinAndSelect('expense.category', 'category')
+      .select([
+        'expense.id',
+        'expense.amount',
+        'expense.description',
+        'expense.created_at',
+        'category.name',
+      ])
       .where({
         ...(data.category && {
           category: {
@@ -102,7 +110,7 @@ export class ExpensesService {
         }),
       })
       .getMany();
-    
+
     const pagesMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto,
