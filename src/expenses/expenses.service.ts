@@ -75,8 +75,8 @@ export class ExpensesService {
     }
 
     if (data.min_price || data.max_price) {
-      if (!data.min_price && data.max_price) data.min_price = 1;
-      if (!data.max_price && data.min_price) data.max_price = 2147483647;
+      if (!data.min_price) data.min_price = 1;
+      if (!data.max_price) data.max_price = 2147483647;
 
       if (data.min_price > data.max_price)
         throw new BadRequestException(
