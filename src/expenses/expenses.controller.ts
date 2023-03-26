@@ -30,21 +30,13 @@ export class ExpensesController {
   }
 
   @Get()
-  getExpense(
-    @Body() data: GetExpenseDto,
-    @Query() pageOptionsDto: PageOptionsDto,
-  ) {
-    try {
-      ExpenseFilterSchema.parse(data);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        zodError(error);
-      }
-
-      throw new BadRequestException('Internal Error');
-    }
-
-    return this.expenseService.getExpense(data, pageOptionsDto);
+  getExpense(@Query() data: GetExpenseDto) {
+   
+    return this.expenseService.getExpense(data, {
+      page: data.page,
+      limit: data.limit,
+      skip: data.skip,
+    });
   }
 
   @Get('total')
@@ -76,8 +68,6 @@ export class ExpensesController {
 
     return this.expenseService.createExpense(createExpenseDto);
   }
-
-  
 
   // @Delete(':id')
   // deleteExpense(@Body('id') id: string) {
