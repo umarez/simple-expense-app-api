@@ -8,7 +8,7 @@ export const ExpenseSchema = z.object({
 
 
 export const ExpenseFilterSchema = z.object({
-  category: z.array(z.string().uuid()).optional(),
+  category_id: z.array(z.string().uuid()).optional(),
   min_price: z.number().optional(),
   max_price: z.number().optional(),
 })

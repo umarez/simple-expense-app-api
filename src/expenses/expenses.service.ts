@@ -64,6 +64,7 @@ export class ExpensesService {
   // }
 
   async getExpense(data: GetExpenseDto, pageOptionsDto: PageOptionsDto) {
+
     if (data.category_id) {
       const category = await this.categoryRepository.find({
         where: {

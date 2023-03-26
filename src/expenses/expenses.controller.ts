@@ -2,12 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
+  Param,
   Post,
   Query,
 } from '@nestjs/common';
-import { PageOptionsDto } from 'src/dto/page-options.dto';
 import { zodError } from 'src/utils';
 import { z } from 'zod';
 import { CreateExpenseDto } from './dto/create.dto';
@@ -31,7 +30,16 @@ export class ExpensesController {
 
   @Get()
   getExpense(@Query() data: GetExpenseDto) {
-   
+    try {
+      ExpenseFilterSchema.parse(data);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        zodError(error);
+      }
+
+      throw new BadRequestException('Internal Error');
+    }
+
     return this.expenseService.getExpense(data, {
       page: data.page,
       limit: data.limit,
@@ -45,12 +53,12 @@ export class ExpensesController {
   }
 
   @Get(':id')
-  getExpenseById(@Body('id') id: string) {
+  getExpenseById(@Param('id') id: string) {
     return this.expenseService.getExpenseById(id);
   }
 
   @Get('category/:id')
-  getExpenseByCategory(@Body('id') id: string) {
+  getExpenseByCategory(@Param('id') id: string) {
     return this.expenseService.getExpenseByCategory(id);
   }
 
