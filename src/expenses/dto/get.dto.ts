@@ -1,5 +1,5 @@
 export class GetExpenseDto {
-    category?: string[]
+    category_id?: string[]
     page?: number
     min_price?: number
     max_price?: number

@@ -64,10 +64,10 @@ export class ExpensesService {
   // }
 
   async getExpense(data: GetExpenseDto, pageOptionsDto: PageOptionsDto) {
-    if (data.category) {
+    if (data.category_id) {
       const category = await this.categoryRepository.find({
         where: {
-          id: In(data.category),
+          id: In(data.category_id),
         },
       });
 
@@ -94,9 +94,9 @@ export class ExpensesService {
         'category.name',
       ])
       .where({
-        ...(data.category && {
+        ...(data.category_id && {
           category: {
-            id: In(data.category),
+            id: In(data.category_id),
           },
         }),
         ...(data.min_price &&
