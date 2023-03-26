@@ -1,9 +1,12 @@
 import { BadRequestException, Catch, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateExpenseDto } from './dto/create';
+import { CreateExpenseDto } from './dto/create.dto';
 import { CategoryEntity, ExpenseEntity } from './expense.entity';
 import { Between, In, Repository } from 'typeorm';
-import { GetExpenseDto } from './dto/get';
+import { GetExpenseDto } from './dto/get.dto';
+import { PageOptionsDto } from 'src/dto/page-options.dto';
+import { PageMetaDto } from 'src/dto/page-meta.dto';
+import { PageDto } from 'src/dto/page.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -60,15 +63,15 @@ export class ExpensesService {
     return this.expenseRepository.remove(expense);
   }
 
-  async getExpense(data: GetExpenseDto) {
+  async getExpense(data: GetExpenseDto, pageOptionsDto: PageOptionsDto) {
     if (data.category) {
-      const category = await this.categoryRepository.findOne({
+      const category = await this.categoryRepository.find({
         where: {
           id: In(data.category),
         },
       });
 
-      if (!category) throw new BadRequestException('Category not found');
+      if (!category.length) throw new BadRequestException('Category not found');
     }
 
     if (data.min_price || data.max_price) {
@@ -79,21 +82,33 @@ export class ExpensesService {
         throw new BadRequestException(
           'Min price cannot be greater than max price',
         );
-    } 
+    }
 
+    const query = this.expenseRepository.createQueryBuilder('expense');
 
-    return await this.expenseRepository.find({
-      where: {
+    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip);
+
+    const itemCount = await query.getCount();
+    const entities = await query
+      .where({
         ...(data.category && {
           category: {
             id: In(data.category),
           },
-          ...(data.min_price && data.max_price && {
-            amount: Between(data.min_price, data.max_price),
-          }),
+          ...(data.min_price &&
+            data.max_price && {
+              amount: Between(data.min_price, data.max_price),
+            }),
         }),
-      },
+      })
+      .getMany();
+    
+    const pagesMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto,
     });
+
+    return new PageDto(entities, pagesMetaDto);
   }
 
   async getExpenseByCategory(id: string) {

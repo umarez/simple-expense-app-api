@@ -7,10 +7,11 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { PageOptionsDto } from 'src/dto/page-options.dto';
 import { zodError } from 'src/utils';
 import { z } from 'zod';
-import { CreateExpenseDto } from './dto/create';
-import { GetExpenseDto } from './dto/get';
+import { CreateExpenseDto } from './dto/create.dto';
+import { GetExpenseDto } from './dto/get.dto';
 import { ExpensesService } from './expenses.service';
 import { ExpenseFilterSchema, ExpenseSchema } from './schema/expense.schema';
 
@@ -29,7 +30,10 @@ export class ExpensesController {
   }
 
   @Get()
-  getExpense(@Body() data: GetExpenseDto) {
+  getExpense(
+    @Body() data: GetExpenseDto,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
     try {
       ExpenseFilterSchema.parse(data);
     } catch (error) {
@@ -39,7 +43,8 @@ export class ExpensesController {
 
       throw new BadRequestException('Internal Error');
     }
-    return this.expenseService.getExpense(data);
+
+    return this.expenseService.getExpense(data, pageOptionsDto);
   }
 
   @Get('category/:id')
