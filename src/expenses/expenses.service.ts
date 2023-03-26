@@ -145,4 +145,12 @@ export class ExpensesService {
 
     return expense;
   }
+
+  async getExpenseAmount() {
+    const query = this.expenseRepository.createQueryBuilder('expense');
+
+    const total = await query.select('SUM(expense.amount)', 'total').getRawOne();
+
+    return total;
+  }
 }
