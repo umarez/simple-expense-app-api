@@ -86,15 +86,13 @@ export class ExpensesService {
 
     const query = this.expenseRepository.createQueryBuilder('expense');
 
-    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip);
-
+    query.orderBy('expense.created_at', 'DESC').skip(pageOptionsDto.skip)
     const itemCount = await query.getCount();
     const entities = await query
       .leftJoinAndSelect('expense.category', 'category')
       .select([
         'expense.id',
         'expense.amount',
-        'expense.description',
         'expense.created_at',
         'category.name',
       ])
@@ -109,8 +107,9 @@ export class ExpensesService {
             }),
         }),
       })
+      .take(pageOptionsDto.limit)
       .getMany();
-
+      
     const pagesMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto,
