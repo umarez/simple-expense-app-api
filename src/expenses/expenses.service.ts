@@ -75,14 +75,16 @@ export class ExpensesService {
     }
 
     if (data.min_price || data.max_price) {
-      if (!data.min_price) data.min_price = 1;
-      if (!data.max_price) data.max_price = 2147483647;
+      if (!data.min_price && data.max_price) data.min_price = 1;
+      if (!data.max_price && data.min_price) data.max_price = 2147483647;
 
       if (data.min_price > data.max_price)
         throw new BadRequestException(
           'Min price cannot be greater than max price',
         );
     }
+
+    console.log(data.min_price, data.max_price);
 
     const query = this.expenseRepository.createQueryBuilder('expense');
 
@@ -101,11 +103,11 @@ export class ExpensesService {
           category: {
             id: In(data.category),
           },
-          ...(data.min_price &&
-            data.max_price && {
-              amount: Between(data.min_price, data.max_price),
-            }),
         }),
+        ...(data.min_price &&
+          data.max_price && {
+            amount: Between(data.min_price, data.max_price),
+          }),
       })
       .take(pageOptionsDto.limit)
       .getMany();
@@ -149,7 +151,9 @@ export class ExpensesService {
   async getExpenseAmount() {
     const query = this.expenseRepository.createQueryBuilder('expense');
 
-    const total = await query.select('SUM(expense.amount)', 'total').getRawOne();
+    const total = await query
+      .select('SUM(expense.amount)', 'total')
+      .getRawOne();
 
     return total;
   }
