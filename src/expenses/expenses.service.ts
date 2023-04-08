@@ -139,6 +139,9 @@ export class ExpensesService {
       where: {
         id,
       },
+      relations: {
+        category: true,
+      }
     });
 
     if (!expense) throw new BadRequestException('Expense not found');
